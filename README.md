@@ -69,7 +69,7 @@ mkdir model
 ```
 
 2. **Descarga los siguientes archivos desde la página oficial del modelo en Hugging Face**:
-   [`facebook/mask2former-swin-large-coco-panoptic`](https://huggingface.co/facebook/mask2former-swin-large-coco-panoptic)
+   [`facebook/mask2former-swin-large-coco-panoptic`](https://huggingface.co/facebook/mask2former-swin-large-coco-panoptic) en la parte de **"Files and Versions"**
 
    Archivos requeridos:
 
