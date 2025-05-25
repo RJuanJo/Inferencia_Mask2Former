@@ -79,12 +79,23 @@ mkdir model
 
 3. **Coloca esos tres archivos dentro de la carpeta `model/`**, así:
 
+### En Linux/macOS
+
+```bash
+cp /ruta/a/los/archivos/config.json model/
+cp /ruta/a/los/archivos/preprocessor_config.json model/
+cp /ruta/a/los/archivos/pytorch_model.bin model/
 ```
-/model
-├── config.json
-├── preprocessor_config.json
-└── pytorch_model.bin
+
+### En Windows (PowerShell)
+
+```powershell
+Copy-Item "C:\ruta\a\los\archivos\config.json" model\
+Copy-Item "C:\ruta\a\los\archivos\preprocessor_config.json" model\
+Copy-Item "C:\ruta\a\los\archivos\pytorch_model.bin" model\
 ```
+
+**Reemplaza `/ruta/a/los/archivos/` o `C:\ruta\a\los\archivos\` con la ruta donde tienes los archivos descargados.**
 
 > Nota: Asegúrate de que los archivos están correctamente nombrados y completos. Sin estos, la aplicación **no podrá ejecutar la inferencia**.
 
