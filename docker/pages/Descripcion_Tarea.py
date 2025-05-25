@@ -14,7 +14,7 @@ A diferencia de modelos especializados que requieren diseños distintos para cad
 """)
 
 # Mostrar imagen de arquitectura
-st.image(os.path.join("sources", "arquitectura.jpg"), caption="Arquitectura general de Mask2Former", use_column_width=True)
+st.image(os.path.join("sources", "arquitectura.jpg"), caption="Arquitectura general de Mask2Former", use_container_width=True)
 
 st.markdown("### ¿Cómo resuelve la segmentación de instancias?")
 st.markdown("""
