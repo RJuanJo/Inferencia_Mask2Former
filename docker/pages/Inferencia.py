@@ -7,7 +7,7 @@ import cv2
 import time
 from datetime import datetime
 
-# Configuración para Docker (sin advertencias de Streamlit)
+# Configuración para Docker
 st.set_page_config(layout="wide")
 st.title("Segmentación con Mask2Former (Imagen, Cámara, Video en Vivo)")
 
@@ -117,79 +117,25 @@ with tab2:
             show_legend(seg_mask)
 
 # Video en Vivo
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
+import av
+
 with tab3:
-    st.header("Segmentación en Tiempo Real (Video en Vivo)")
-    col1, col2 = st.columns(2)
-    with col1:
-        alpha = st.slider("Transparencia", 0.1, 1.0, 0.6, key="alpha_vid")
-        show_labels = st.checkbox("Mostrar etiquetas", True, key="labels_vid")
-    with col2:
-        target_fps = st.slider("FPS objetivo", 1, 30, 10)
+    st.header("Segmentación en Tiempo Real (Video en Vivo, vía navegador)")
 
-    save_video = st.checkbox("Guardar video segmentado", False, key="save_vid")
+    alpha = st.slider("Transparencia", 0.1, 1.0, 0.6, key="alpha_webcam")
+    show_labels = st.checkbox("Mostrar etiquetas", True, key="labels_webcam")
 
-    FRAME_WINDOW = st.image([], use_container_width=True)
+    class VideoProcessor(VideoProcessorBase):
+        def recv(self, frame):
+            img = frame.to_ndarray(format="bgr24")
+            segmented, _ = segment_frame(img, alpha=alpha, show_labels=show_labels)
+            return av.VideoFrame.from_ndarray(segmented, format="bgr24")
 
-    if "recording" not in st.session_state:
-        st.session_state.recording = False
-
-    col_btn1, col_btn2 = st.columns(2)
-
-    with col_btn1:
-        if not st.session_state.recording:
-            if st.button("Iniciar grabación"):
-                st.session_state.recording = True
-                st.rerun()
-
-    with col_btn2:
-        if st.session_state.recording:
-            if st.button("Parar grabación"):
-                st.session_state.recording = False
-                st.rerun()
-
-    video_path = None
-
-    if st.session_state.recording:
-        cap = cv2.VideoCapture(0)
-        frame_count, fps, last_log = 0, 0, time.time()
-        prev_time = time.time()
-        out = None
-
-        ret, frame = cap.read()
-        if not ret:
-            st.error("No se pudo acceder a la cámara.")
-        else:
-            if save_video:
-                now = datetime.now().strftime("%Y%m%d_%H%M%S")
-                video_path = f"video_segmentado_{now}.mp4"
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                out = cv2.VideoWriter(video_path, fourcc, target_fps, (frame.shape[1], frame.shape[0]))
-
-            try:
-                while st.session_state.recording:
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-
-                    curr_time = time.time()
-                    if curr_time - prev_time >= 1. / target_fps:
-                        segmented_frame, _ = segment_frame(frame, alpha, show_labels)
-
-                        if save_video and out is not None:
-                            out.write(cv2.cvtColor(segmented_frame, cv2.COLOR_RGB2BGR))
-
-                        frame_count += 1
-                        if curr_time - last_log >= 1.0:
-                            fps = frame_count / (curr_time - last_log)
-                            frame_count = 0
-                            last_log = curr_time
-
-                        cv2.putText(segmented_frame, f"FPS: {fps:.1f}", (10, 30),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-                        FRAME_WINDOW.image(segmented_frame, channels="RGB")
-
-                        prev_time = curr_time
-            finally:
-                cap.release()
-                if out is not None:
-                    out.release()
+    webrtc_streamer(
+        key="streaming",
+        mode=WebRtcMode.SENDRECV,
+        video_processor_factory=VideoProcessor,
+        media_stream_constraints={"video": True, "audio": False},
+        async_processing=True
+    )
