@@ -99,7 +99,7 @@ pip install -r requirements.txt
 ### Ejecuta la aplicación
 
 ```bash
-streamlit run Pagina_principal.py
+streamlit run Pagina_Principal.py
 ```
 
 > Asegúrate de tener una cámara funcional si deseas probar la segmentación en vivo.
