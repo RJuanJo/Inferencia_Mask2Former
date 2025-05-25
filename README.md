@@ -24,7 +24,7 @@ Mask2Former es un modelo de segmentación universal propuesto por Facebook AI Re
 ## Estructura del Proyecto
 
 ```
-
+├── docker/                  ← Funcionamiento de la aplicacion en un contenedor de docker
 ├── model/                  ← Archivos del modelo (no incluidos por tamaño)
 ├── pages/                  ← Páginas de la app Streamlit
 │   ├── Descripcion\_Tarea.py
