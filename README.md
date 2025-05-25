@@ -124,8 +124,6 @@ docker/
 
 > **Importante:** La carpeta `model/` no está en el repositorio y debe copiarse manualmente dentro de `docker/` antes de construir la imagen.
 
----
-
 ### Construir la imagen Docker
 
 Desde la raíz del proyecto, ingresa a la carpeta `docker`:
@@ -139,9 +137,6 @@ Construye la imagen con:
 ```bash
 docker build -t mask2former-app .
 ```
-
----
-
 ### Ejecutar el contenedor
 
 Ejecuta el contenedor mapeando el puerto:
@@ -149,9 +144,6 @@ Ejecuta el contenedor mapeando el puerto:
 ```bash
 docker run -p 8501:8501 mask2former-app
 ```
-
----
-
 ### Accede a la aplicación
 
 Abre en tu navegador:
