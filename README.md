@@ -19,7 +19,7 @@ Mask2Former es un modelo de segmentación universal propuesto por Facebook AI Re
 
 > **Nota técnica:**  
 > Esta aplicación ha sido **configurada para funcionar completamente en CPU**, sin necesidad de aceleración por GPU. A pesar de ello, la inferencia es razonablemente rápida y permite una experiencia fluida si se utilizan imágenes.  
-> La segmentación a tiempo real en video puede ser menos eficiente sin GPU, sin embargo, existe la opción de guardar la grabación en un video (`video_demostracion.mp4`) que puede reproducirse posteriormente para visualizar la segmentación de manera fluida.
+> La segmentación a tiempo real en video puede ser menos eficiente sin GPU, sin embargo, existe la opción de guardar la grabación en un video (como el `video_demostracion.mp4`) que puede reproducirse posteriormente para visualizar la segmentación de manera fluida.
 
 ## Estructura del Proyecto
 
