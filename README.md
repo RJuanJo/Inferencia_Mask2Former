@@ -135,6 +135,21 @@ docker/
 
 > **Importante:** La carpeta `model/` no está en el repositorio y debe copiarse manualmente dentro de `docker/` antes de construir la imagen.
 
+### Linux/macOS
+
+```bash
+cp -r model docker/
+```
+
+### Windows (PowerShell)
+
+```powershell
+Copy-Item -Recurse -Force model docker\
+```
+
+**Asegúrate de ejecutar estos comandos desde la raíz del proyecto**, donde están ubicadas las carpetas `model/` y `docker/`.
+
+
 ### Construir la imagen Docker
 
 Desde la raíz del proyecto, ingresa a la carpeta `docker`:
