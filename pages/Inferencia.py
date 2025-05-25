@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 import time
 from datetime import datetime
+import os
 
 # Configuración de página en Streamlit para diseño ancho
 st.set_page_config(layout="wide")
@@ -171,9 +172,11 @@ with tab3:
         if not ret:
             st.error("No se pudo acceder a la cámara.")
         else:
+
             if save_video:
+                os.makedirs("sources/outputs", exist_ok=True)  # Crea la carpeta si no existe
                 now = datetime.now().strftime("%Y%m%d_%H%M%S")
-                video_path = f"video_segmentado_{now}.mp4"
+                video_path = f"sources/outputs/video_segmentado_{now}.mp4"
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec para grabación video MP4 - https://docs.opencv.org/4.x/dd/d9e/classcv_1_1VideoWriter.html
                 out = cv2.VideoWriter(video_path, fourcc, target_fps, (frame.shape[1], frame.shape[0]))
 
