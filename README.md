@@ -1,6 +1,3 @@
-Claro, aquí tienes todo tu contenido organizado en una **sola celda Markdown (`.md`)**, listo para pegar en tu `README.md` en GitHub:
-
-```markdown
 # Segmentación con Mask2Former
 
 Esta aplicación realiza inferencia utilizando el modelo **Mask2Former** sobre imágenes, cámara en vivo o video en tiempo real. Fue desarrollada con fines demostrativos y educativos, y **no representa una implementación propia del modelo**, sino una interfaz para facilitar su uso.
