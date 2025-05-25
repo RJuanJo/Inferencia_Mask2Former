@@ -108,20 +108,57 @@ streamlit run Pagina_principal.py
 
 ## Uso con Docker
 
-### Construye la imagen
+### Estructura para Docker
+
+La carpeta `docker/` debe contener todo el proyecto para la ejecución dentro del contenedor:
+
+```
+docker/
+├── model/                  ← Archivos del modelo (config.json, pytorch_model.bin, preprocessor_config.json)
+├── pages/                  ← Páginas Streamlit (Descripcion_Tarea.py, Detalle_Arquitectura.py, Inferencia.py)
+├── sources/                ← Archivos de demo (demo.jpg, video_demostracion.mp4)
+├── Pagina_Principal.py     ← Página principal
+├── requirements.txt        ← Dependencias Python
+└── Dockerfile              ← Archivo para crear la imagen Docker
+```
+
+> **Importante:** La carpeta `model/` no está en el repositorio y debe copiarse manualmente dentro de `docker/` antes de construir la imagen.
+
+---
+
+### Construir la imagen Docker
+
+Desde la raíz del proyecto, ingresa a la carpeta `docker`:
+
+```bash
+cd docker
+```
+
+Construye la imagen con:
 
 ```bash
 docker build -t mask2former-app .
 ```
 
-### Ejecuta el contenedor
+---
+
+### Ejecutar el contenedor
+
+Ejecuta el contenedor mapeando el puerto:
 
 ```bash
-docker run -p 8501:8080 mask2former-app
+docker run -p 8501:8501 mask2former-app
 ```
 
-Accede a la aplicación desde tu navegador en: [http://localhost:8501](http://localhost:8501)
+---
 
+### Accede a la aplicación
+
+Abre en tu navegador:
+
+```
+http://localhost:8501
+```
 ---
 
 ## Demostración
