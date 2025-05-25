@@ -54,6 +54,41 @@ python -m venv venv
 # En macOS/Linux
 source venv/bin/activate
 ````
+---
+
+## Preparación de la Carpeta `model/`
+
+La carpeta `model/` no está incluida en este repositorio debido a su tamaño. Para que la aplicación funcione correctamente, debes crearla manualmente y colocar dentro los archivos del modelo preentrenado.
+
+### Pasos:
+
+1. **Crea la carpeta en la raíz del proyecto** si aún no existe:
+
+```bash
+mkdir model
+```
+
+2. **Descarga los siguientes archivos desde la página oficial del modelo en Hugging Face**:
+   [`facebook/mask2former-swin-large-coco-panoptic`](https://huggingface.co/facebook/mask2former-swin-large-coco-panoptic)
+
+   Archivos requeridos:
+
+   * `config.json`
+   * `preprocessor_config.json`
+   * `pytorch_model.bin`
+
+3. **Coloca esos tres archivos dentro de la carpeta `model/`**, así:
+
+```
+/model
+├── config.json
+├── preprocessor_config.json
+└── pytorch_model.bin
+```
+
+> Nota: Asegúrate de que los archivos están correctamente nombrados y completos. Sin estos, la aplicación **no podrá ejecutar la inferencia**.
+
+---
 
 ### Instala las dependencias
 
