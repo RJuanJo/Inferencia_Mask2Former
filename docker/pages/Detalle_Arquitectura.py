@@ -54,7 +54,7 @@ st.markdown("""
 - Máscaras binarias: `[N, H/4, W/4]`.  
 - Scores de clases: `[N, K]`.
 """)
-st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: máscaras y scores", use_container_width=True)
+st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: máscaras y scores", use_column_width=True)
 
 # Q, K, V
 st.markdown("### 3. Generación de Q, K y V")
@@ -72,7 +72,7 @@ V = Linear(features + pos_emb + scale_emb)
 ````
 
 """)
-st.image("sources/vectores_qkv.jpg", caption="Generación de vectores Q (consultas), K (claves), V (valores)", use_container_width=True)
+st.image("sources/vectores_qkv.jpg", caption="Generación de vectores Q (consultas), K (claves), V (valores)", use_column_width=True)
 
 # CREACIÓN DE MÁSCARAS
 
@@ -90,7 +90,7 @@ for l in range(L):
 
 Cada capa refina las máscaras predichas. Se construyen de forma progresiva con atención enmascarada, auto-atención y FFN.
 """)
-st.image("sources/creacion_mascaras.jpg", caption="Proceso de refinamiento iterativo de máscaras", use_container_width=True)
+st.image("sources/creacion_mascaras.jpg", caption="Proceso de refinamiento iterativo de máscaras", use_column_width=True)
 
 # ATENCIÓN ENMASCARADA
 
@@ -100,32 +100,81 @@ st.markdown("""
 Cada capa del decodificador toma como entrada una máscara binaria de la capa anterior (`Mₗ₋₁`) y enfoca la atención solo dentro de esa región:
 
 ```math
-\\text{Attention}(Q, K, V) = \\text{softmax}(\\bm{\\mathcal{M}}_{l-1} + QK^T/\\sqrt{d})V
+{Attention}(Q, K, V) = \\text{softmax}(\\bm{\\mathcal{M}}_{l-1} + QK^T/\\sqrt{d})V
 ```
 
 * 𝓜(x,y) = 0 si Mₗ₋₁(x,y) = 1 (dentro de la ROI).
 * 𝓜(x,y) = -∞ si Mₗ₋₁(x,y) = 0 (excluye fondos).
   """)
-st.image("sources/atencion_enmascarada.jpg", caption="Atención concentrada solo en regiones relevantes", use_container_width=True)
+st.image("sources/atencion_enmascarada.jpg", caption="Atención concentrada solo en regiones relevantes", use_column_width=True)
 
 # DIFERENCIAS
 
 st.markdown("### 6. Diferencias con Modelos Anteriores")
-st.image("sources/tabla_diferencias.jpg", use_container_width=True)
+st.image("sources/tabla_diferencias.jpg", use_column_width=True)
 
 # POR QUÉ IDEAL
 
 st.markdown("### 7. ¿Por qué es ideal para segmentación de instancias?")
 st.markdown("""
 
-* **Precisión en bordes**: mejora la calidad del contorno (AP de borde = 36.2 en COCO).
+* **Precisión en bordes**: mejora la calidad del contorno.
 * **Separación de objetos solapados**: atención localizada por instancia.
 * **Reconocimiento de objetos pequeños**: gracias a las características de alta resolución.
   """)
 
+# PROCESO PASO A PASO
+st.markdown("### 8. Proceso Paso a Paso de Segmentación")
+st.markdown("""
+A continuación se detalla cómo Mask2Former procesa una imagen para generar máscaras de instancias:
+""")
+
+st.markdown("""
+#### **Paso 1: Inicialización**  
+- **Entrada**: El modelo recibe una imagen (ej: foto con perros y árboles).  
+- **100 queries**: Vectores aprendibles que actúan como "notas adhesivas vacías" para registrar información de objetos.  
+  - Cada query se especializa en un objeto distinto (Query 1 → Perro 1, Query 2 → Perro 2, etc.).  
+- **Detalle técnico**: Estas queries son parámetros entrenables que el modelo ajusta durante el aprendizaje.  
+""")
+
+st.markdown("""
+#### **Paso 2: Atención Enmascarada**  
+- Cada query analiza solo la región de la imagen donde predijo un objeto en el paso anterior.  
+  - **Ejemplo**: Si una query identificó un perro, ignora árboles, cielo y otros elementos.  
+- **Innovación clave**:  
+  - Modelos antiguos (como DETR) analizan toda la imagen para cada query.  
+  - Mask2Former usa máscaras binarias para restringir el área de atención.  
+""")
+
+st.markdown("""
+#### **Paso 3: Generación de Máscaras y Clases**  
+Cada query produce:  
+1. **Máscara binaria**:  
+   - Mapa de píxeles donde `1` = objeto y `0` = fondo.  
+   - Resolución: 1/4 del tamaño original (balance precisión-eficiencia).  
+2. **Clase y confianza**:  
+   - Predicción categórica (ej: "perro" con 95% de confianza).  
+   - Si no detecta un objeto, devuelve "no objeto".  
+""")
+
+st.markdown("""
+#### **Paso 4: Refinamiento (9 Iteraciones)**  
+El proceso se repite 9 veces (3 grupos de 3 capas) para mejorar las máscaras:  
+
+| **Capas** | **Resolución** | **Enfoque**                                  |  
+|-----------|----------------|---------------------------------------------|  
+| 1-3       | 1/32 (baja)    | Contexto general (ej: "hay un perro").      |  
+| 4-6       | 1/16 (media)   | Formas básicas (ej: "4 patas y cola").      |  
+| 7-9       | 1/8 (alta)     | Detalles finos (ej: "orejas puntiagudas").  |  
+
+**¿Por qué 9 iteraciones?**  
+- **Jerarquía de características**: Combina contexto global (capas iniciales) con detalles precisos (capas finales).  
+- **Eficiencia**: 9 capas demostraron ser el equilibrio óptimo entre precisión y coste computacional.  
+""")
+
 # RESULTADOS Y REFERENCIAS
 
-st.markdown("### 8. Resultados y Referencias")
+st.markdown("### 9. Resultados y Referencias")
 st.markdown("""
 **Resultados Clave**  
 - **COCO Instance Segmentation**: 50.1 AP (supera HTC++).  
