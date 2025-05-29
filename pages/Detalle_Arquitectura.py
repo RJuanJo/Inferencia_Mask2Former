@@ -100,7 +100,7 @@ st.markdown("""
 Cada capa del decodificador toma como entrada una máscara binaria de la capa anterior (`Mₗ₋₁`) y enfoca la atención solo dentro de esa región:
 
 ```math
-\\text{Attention}(Q, K, V) = \\text{softmax}(\\bm{\\mathcal{M}}_{l-1} + QK^T/\\sqrt{d})V
+{Attention}(Q, K, V) = \\text{softmax}(\\bm{\\mathcal{M}}_{l-1} + QK^T/\\sqrt{d})V
 ```
 
 * 𝓜(x,y) = 0 si Mₗ₋₁(x,y) = 1 (dentro de la ROI).
