@@ -190,4 +190,3 @@ st.markdown("""
 Todas las explicaciones, diagramas e ilustraciones fueron construidas con base en el contenido del paper oficial y sus recursos asociados.  
 **Todo el crédito por la arquitectura y avances técnicos es de los autores originales. Este proyecto es una interfaz educativa/demostrativa sin ninguna autoría sobre el modelo ni sus fundamentos.**
 """)
-

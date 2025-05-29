@@ -54,7 +54,7 @@ st.markdown("""
 - Máscaras binarias: `[N, H/4, W/4]`.  
 - Scores de clases: `[N, K]`.
 """)
-st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: máscaras y scores", use_column_width=True)
+st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: máscaras y scores", use_container_width=True)
 
 # Q, K, V
 st.markdown("### 3. Generación de Q, K y V")
@@ -72,7 +72,7 @@ V = Linear(features + pos_emb + scale_emb)
 ````
 
 """)
-st.image("sources/vectores_qkv.jpg", caption="Generación de vectores Q (consultas), K (claves), V (valores)", use_column_width=True)
+st.image("sources/vectores_qkv.jpg", caption="Generación de vectores Q (consultas), K (claves), V (valores)", use_container_width=True)
 
 # CREACIÓN DE MÁSCARAS
 
@@ -90,7 +90,7 @@ for l in range(L):
 
 Cada capa refina las máscaras predichas. Se construyen de forma progresiva con atención enmascarada, auto-atención y FFN.
 """)
-st.image("sources/creacion_mascaras.jpg", caption="Proceso de refinamiento iterativo de máscaras", use_column_width=True)
+st.image("sources/creacion_mascaras.jpg", caption="Proceso de refinamiento iterativo de máscaras", use_container_width=True)
 
 # ATENCIÓN ENMASCARADA
 
@@ -106,12 +106,12 @@ Cada capa del decodificador toma como entrada una máscara binaria de la capa an
 * 𝓜(x,y) = 0 si Mₗ₋₁(x,y) = 1 (dentro de la ROI).
 * 𝓜(x,y) = -∞ si Mₗ₋₁(x,y) = 0 (excluye fondos).
   """)
-st.image("sources/atencion_enmascarada.jpg", caption="Atención concentrada solo en regiones relevantes", use_column_width=True)
+st.image("sources/atencion_enmascarada.jpg", caption="Atención concentrada solo en regiones relevantes", use_container_width=True)
 
 # DIFERENCIAS
 
 st.markdown("### 6. Diferencias con Modelos Anteriores")
-st.image("sources/tabla_diferencias.jpg", use_column_width=True)
+st.image("sources/tabla_diferencias.jpg", use_container_width=True)
 
 # POR QUÉ IDEAL
 
