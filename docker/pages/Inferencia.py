@@ -106,7 +106,7 @@ tab1, tab2, tab3 = st.tabs(["Subir Imagen", "Cámara - Tomar Foto", "Video en Vi
 # Tab 1: Segmentación de imagen subida
 with tab1:
     st.header("Segmentación de Imagen Subida")
-    uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "jpeg", "png"])  # Subir archivo
+    uploaded_file = st.file_uploader("Sube una imagen", type=["jpg"])  # Subir archivo
     if uploaded_file:
         image = Image.open(uploaded_file)  # Abrir imagen con PIL (https://pillow.readthedocs.io)
         alpha = st.slider("Transparencia", 0.1, 1.0, 0.5, key="alpha_img")  # Slider para transparencia

@@ -105,7 +105,7 @@ tab1, tab2, tab3 = st.tabs(["Subir Imagen", "Cámara - Tomar Foto", "Video en Vi
 # Tab 1: carga y segmentación de imagen estática
 with tab1:
     st.header("Segmentación de Imagen Subida")
-    uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "jpeg", "png"])  # Carga archivo
+    uploaded_file = st.file_uploader("Sube una imagen", type=["jpg"])  # Carga archivo
     if uploaded_file:
         image = Image.open(uploaded_file)
         alpha = st.slider("Transparencia", 0.1, 1.0, 0.5, key="alpha_img")  # Control de transparencia
