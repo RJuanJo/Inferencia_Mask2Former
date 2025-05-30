@@ -4,14 +4,14 @@ import os
 
 st.set_page_config(page_title="Detalle de la Arquitectura", layout="wide")
 
-st.title("Funcionamiento de Mask2Former para Segmentación Semantica")
+st.title("Funcionamiento de Mask2Former para Segmentación Semántica")  # Cambiado
 
 st.markdown("### Introducción General")
 st.markdown("""
-Mask2Former es una arquitectura basada en transformers diseñada específicamente para segmentación **panóptica**, **de instancias** y **semántica**.  
-Se basa en un mecanismo de atención enmascarada que restringe el foco del modelo a regiones relevantes, usando consultas aprendibles (queries) para predecir directamente máscaras binarias asociadas a cada clase.
+Mask2Former es una arquitectura basada en transformers diseñada para segmentación **semántica**, **panóptica** y **de instancias**.  
+Su mecanismo de atención enmascarada permite enfocarse en regiones relevantes de cada categoría, usando consultas aprendibles (queries) para predecir máscaras por clase (no por objeto individual).
 
-En esta sección profundizamos en su arquitectura, entradas y salidas, y el funcionamiento interno del mecanismo de atención.
+En esta sección exploramos cómo se adapta para segmentación semántica.
 """)
 
 # COMPONENTES CLAVE
@@ -20,165 +20,122 @@ st.markdown("### 1. Componentes Clave")
 with st.expander("Atención Enmascarada (Masked Attention)"):
     st.markdown("""
     - Reemplaza la atención global de los transformers tradicionales.  
-    - **Enfoca la atención solo en regiones de interés** (máscaras predichas), evitando distracciones en fondos irrelevantes.  
-    - Ejemplo: Si una *query* predice un "perro", la atención se limita a la región de ese perro.
+    - **Enfoca la atención solo en píxeles de interés para cada clase** (ej: si una query representa "árboles", ignora edificios o calles).  
+    - Ejemplo: Query "carretera" → atención limitada a píxeles de vialidad.
     """)
 
 with st.expander("Características Multi-Escala"):
     st.markdown("""
-    - Combina características de **alta resolución** (1/8 de la imagen original) y **baja resolución** (1/32).  
-    - Ventaja: Detecta objetos pequeños con precisión gracias a detalles finos de alta resolución.
+    - Combina características de **alta resolución** (1/8) y **baja resolución** (1/32).  
+    - Ventaja: Detecta categorías pequeñas (ej: señales de tráfico) con precisión.
     """)
 
 with st.expander("Optimizaciones"):
     st.markdown("""
-    - **Orden de capas**: Cambia el orden de las capas de auto-atención y atención cruzada.  
-    - **Queries aprendibles**: Inicializa las queries como parámetros entrenables (no ceros).  
-    - **Sin dropout**: Mejora el rendimiento al remover regularización innecesaria.
-    """)
-
-with st.expander("Pérdida Eficiente"):
-    st.markdown("""
-    - Calcula la pérdida en puntos muestreados aleatoriamente (ej: 112×112 puntos), reduciendo consumo de memoria.
+    - **Queries aprendibles**: Cada query se especializa en una clase (ej: Query 1 = "cielo", Query 2 = "vegetación").  
+    - **Sin dropout**: Mejora rendimiento en tareas semánticas donde la coherencia espacial es crítica.
     """)
 
 # ENTRADAS Y SALIDAS
 st.markdown("### 2. Entradas y Salidas del Modelo")
-
 st.markdown("""
 **Entradas**  
 - Imagen: Tensor `[H, W, 3]`.  
-- Queries: `[N, C]`, vectores aprendibles inicializados aleatoriamente que actúan como propuestas de instancia.
+- Queries: `[N, C]`, vectores aprendibles asociados a categorías.
 
 **Salidas**  
-- Máscaras binarias: `[N, H/4, W/4]`.  
-- Scores de clases: `[N, K]`.
+- Mapa de clases: `[H/4, W/4]` (cada píxel tiene un ID de clase).  
+- Scores por categoría: `[N, K]` (confianza por clase).
 """)
-st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: máscaras y scores", use_container_width=True)
+st.image("sources/entradas_salidas.jpg", caption="Entradas: imagen + queries; Salidas: mapa de clases y scores", use_container_width=True)  # Leyenda ajustada
 
 # Q, K, V
 st.markdown("### 3. Generación de Q, K y V")
-
 st.markdown("""
 **Queries (Q)**  
-- Aprendibles, refinadas por el decodificador transformer en múltiples capas.
+- Aprendibles, cada una representa una categoría semántica (ej: "edificios", "peatones").
 
 **Keys y Values (K, V)**  
-- Derivados del Pixel Decoder que genera una pirámide de características multi-escala (resoluciones 1/32, 1/16, 1/8).  
-
+- Derivados del Pixel Decoder con características multi-escala.  
 ```python
 K = Linear(features + pos_emb + scale_emb)
 V = Linear(features + pos_emb + scale_emb)
-````
-
+```
 """)
-st.image("sources/vectores_qkv.jpg", caption="Generación de vectores Q (consultas), K (claves), V (valores)", use_container_width=True)
+st.image("sources/vectores_qkv.jpg", caption="Generación de Q (clases), K, V (características)", use_container_width=True)
 
 # CREACIÓN DE MÁSCARAS
-
-st.markdown("### 4. Creación Iterativa de Máscaras")
-
+st.markdown("### 4. Creación Iterativa del Mapa Semántico")
 st.markdown("""
-
 ```python
 for l in range(L):  
-    Q = Q_prev + masked_attention(Q_prev, K, V)  
-    Q = Q + self_attention(Q)  
-    Q = Q + FFN(Q)  
-    M_l = Linear(Q) + upsample(M_l-1)
+    Q = Q_prev + masked_attention(Q_prev, K, V)  # Atención por clase
+    M_l = Linear(Q) + upsample(M_l-1)  # Refina máscaras de categorías
 ```
-
-Cada capa refina las máscaras predichas. Se construyen de forma progresiva con atención enmascarada, auto-atención y FFN.
 """)
-st.image("sources/creacion_mascaras.jpg", caption="Proceso de refinamiento iterativo de máscaras", use_container_width=True)
+st.image("sources/creacion_mascaras.jpg", caption="Refinamiento progresivo del mapa de clases", use_container_width=True)
 
 # ATENCIÓN ENMASCARADA
-
-st.markdown("### 5. Mecanismo de Atención Enmascarada")
-
+st.markdown("### 5. Atención Enmascarada por Clase")
 st.markdown("""
-Cada capa del decodificador toma como entrada una máscara binaria de la capa anterior (`Mₗ₋₁`) y enfoca la atención solo dentro de esa región:
-
+Cada query restringe la atención a píxeles de su categoría:
 ```math
 {Attention}(Q, K, V) = \\text{softmax}(\\bm{\\mathcal{M}}_{l-1} + QK^T/\\sqrt{d})V
 ```
-
-* 𝓜(x,y) = 0 si Mₗ₋₁(x,y) = 1 (dentro de la ROI).
-* 𝓜(x,y) = -∞ si Mₗ₋₁(x,y) = 0 (excluye fondos).
-  """)
-st.image("sources/atencion_enmascarada.jpg", caption="Atención concentrada solo en regiones relevantes", use_container_width=True)
+* 𝓜(x,y) = 0 si el píxel pertenece a la clase actual.  
+* 𝓜(x,y) = -∞ si no es relevante para la query.
+""")
+st.image("sources/atencion_enmascarada.jpg", caption="Atención enfocada en píxeles de la clase objetivo", use_container_width=True)
 
 # DIFERENCIAS
-
 st.markdown("### 6. Diferencias con Modelos Anteriores")
 st.image("sources/tabla_diferencias.jpg", use_container_width=True)
+st.markdown("""
+**Nota**:  
+- Las queries agrupan píxeles por categoría.  
+- Las máscaras son mapas por clase (ej: todos los "árboles" en una sola región).
+""")
 
 # POR QUÉ IDEAL
-
-st.markdown("### 7. ¿Por qué es ideal para segmentación semantica?")
+st.markdown("### 7. ¿Por qué es ideal para segmentación semántica?")
 st.markdown("""
-
-* **Precisión en bordes**: mejora la calidad del contorno.
-* **Separación de objetos solapados**: atención localizada por instancia.
-* **Reconocimiento de objetos pequeños**: gracias a las características de alta resolución.
-  """)
+* **Precisión en bordes**: Define límites entre clases (ej: acera vs. calle).  
+* **Consistencia espacial**: Mantiene coherencia en áreas grandes (ej: cielo).  
+* **Eficiencia**: Menos queries necesarias vs. segmentación de instancias.
+""")
 
 # PROCESO PASO A PASO
-st.markdown("### 8. Proceso Paso a Paso de Segmentación")
-st.markdown("""
-A continuación se detalla cómo Mask2Former procesa una imagen para generar máscaras de instancias:
-""")
-
+st.markdown("### 8. Proceso Paso a Paso")
 st.markdown("""
 #### **Paso 1: Inicialización**  
-- **Entrada**: El modelo recibe una imagen (ej: foto con perros y árboles).  
-- **100 queries**: Vectores aprendibles que actúan como "notas adhesivas vacías" para registrar información de objetos.  
-  - Cada query se especializa en un objeto distinto (Query 1 → Perro 1, Query 2 → Perro 2, etc.).  
-- **Detalle técnico**: Estas queries son parámetros entrenables que el modelo ajusta durante el aprendizaje.  
-""")
+- **Queries**: Cada una representa una clase (ej: Query 1 = "vehículos", Query 2 = "peatones").  
 
-st.markdown("""
 #### **Paso 2: Atención Enmascarada**  
-- Cada query analiza solo la región de la imagen donde predijo un objeto en el paso anterior.  
-  - **Ejemplo**: Si una query identificó un perro, ignora árboles, cielo y otros elementos.  
-- **Innovación clave**:  
-  - Modelos antiguos (como DETR) analizan toda la imagen para cada query.  
-  - Mask2Former usa máscaras binarias para restringir el área de atención.  
-""")
+- Cada query analiza solo píxeles de su categoría (ignora fondos irrelevantes).  
 
-st.markdown("""
-#### **Paso 3: Generación de Máscaras y Clases**  
-Cada query produce:  
-1. **Máscara binaria**:  
-   - Mapa de píxeles donde `1` = objeto y `0` = fondo.  
-   - Resolución: 1/4 del tamaño original (balance precisión-eficiencia).  
-2. **Clase y confianza**:  
-   - Predicción categórica (ej: "perro" con 95% de confianza).  
-   - Si no detecta un objeto, devuelve "no objeto".  
-""")
+#### **Paso 3: Salidas**  
+1. **Mapa de clases**: `[H/4, W/4]` (asignación por píxel).  
+2. **Confianza por clase**: Probabilidad global de cada categoría.  
 
-st.markdown("""
 #### **Paso 4: Refinamiento (9 Iteraciones)**  
-El proceso se repite 9 veces (3 grupos de 3 capas) para mejorar las máscaras:  
-
 | **Capas** | **Resolución** | **Enfoque**                                  |  
 |-----------|----------------|---------------------------------------------|  
-| 1-3       | 1/32 (baja)    | Contexto general (ej: "hay un perro").      |  
-| 4-6       | 1/16 (media)   | Formas básicas (ej: "4 patas y cola").      |  
-| 7-9       | 1/8 (alta)     | Detalles finos (ej: "orejas puntiagudas").  |  
-
-**¿Por qué 9 iteraciones?**  
-- **Jerarquía de características**: Combina contexto global (capas iniciales) con detalles precisos (capas finales).  
-- **Eficiencia**: 9 capas demostraron ser el equilibrio óptimo entre precisión y coste computacional.  
+| 1-3       | 1/32           | Contexto global (ej: "área urbana").        |  
+| 4-6       | 1/16           | Estructuras (ej: "formas de edificios").    |  
+| 7-9       | 1/8            | Detalles (ej: "ventanas", "señalización").  |  
 """)
 
-# RESULTADOS Y REFERENCIAS
-
-st.markdown("### 9. Resultados y Referencias")
+# RESULTADOS
+st.markdown("### 9. Resultados en Semántica")
 st.markdown("""
-**Resultados Clave**  
-- **COCO Instance Segmentation**: 50.1 AP (supera HTC++).  
-- **Eficiencia**: Solo 50 épocas para alcanzar rendimiento de alto nivel.
+**Benchmarks clave**:  
+- **ADE20K**: 57.7 mIoU (state-of-the-art)  
+- **Cityscapes**: 84.3 mIoU  
+- **COCO-Stuff**: 45.2 mIoU  
+
+**Ventajas**:  
+- Preserva bordes nítidos entre categorías.  
+- Eficiente para escenas con muchas clases.
 
 **Referencias Oficiales**
 
