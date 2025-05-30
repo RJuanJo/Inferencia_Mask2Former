@@ -4,7 +4,7 @@ import os
 
 st.set_page_config(page_title="Detalle de la Arquitectura", layout="wide")
 
-st.title("Funcionamiento de Mask2Former para Segmentación de Instancias")
+st.title("Funcionamiento de Mask2Former para Segmentación Semantica")
 
 st.markdown("### Introducción General")
 st.markdown("""
@@ -115,7 +115,7 @@ st.image("sources/tabla_diferencias.jpg", use_container_width=True)
 
 # POR QUÉ IDEAL
 
-st.markdown("### 7. ¿Por qué es ideal para segmentación de instancias?")
+st.markdown("### 7. ¿Por qué es ideal para segmentación semantica?")
 st.markdown("""
 
 * **Precisión en bordes**: mejora la calidad del contorno.

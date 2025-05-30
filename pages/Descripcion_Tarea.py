@@ -4,7 +4,7 @@ import os
 
 st.set_page_config(page_title="Descripción de la Tarea", layout="wide")
 
-st.title("Mask2Former para Segmentación de Instancias")
+st.title("Mask2Former para Segmentación Semántica")
 
 st.markdown("""
 ### Introducción
@@ -16,26 +16,32 @@ A diferencia de modelos especializados que requieren diseños distintos para cad
 # Mostrar imagen de arquitectura
 st.image(os.path.join("sources", "arquitectura.jpg"), caption="Arquitectura general de Mask2Former", use_column_width=True)
 
-st.markdown("### ¿Cómo resuelve la segmentación de instancias?")
+st.markdown("### ¿Cómo resuelve la segmentación semántica?")
 st.markdown("""
-La segmentación de instancias busca **detectar y diferenciar cada objeto individual** en una imagen, asignándole una máscara distinta a cada uno (incluso si son de la misma clase).
+La segmentación semántica busca **clasificar cada píxel** de una imagen según su categoría (ej: "cielo", "carretera", "árbol"), **sin distinguir entre instancias individuales** (todos los píxeles de "árbol" pertenecen a la misma categoría, sin importar cuántos árboles haya).
 
-Mask2Former logra esto de forma precisa y sin cajas delimitadoras, mediante un proceso en tres partes:
-
-- **Predicción de máscaras binarias**: A diferencia de Mask R-CNN que genera *bounding boxes*, Mask2Former predice directamente **máscaras binarias** para cada instancia, identificando la forma completa del objeto.
-
-- **Queries aprendibles**: Usa *queries* entrenables que representan propuestas de objetos. Estas queries interactúan con las características extraídas de la imagen, permitiendo que el modelo aprenda a detectar regiones relevantes sin necesidad de cajas previas.
-
-- **Atención enmascarada (Masked Attention)**: En lugar de aplicar atención a toda la imagen, la atención se **restringe a regiones específicas** determinadas por las máscaras predichas. Esto mejora la precisión, especialmente en objetos pequeños o solapados, al concentrar los recursos del modelo en los objetos de interés.
-
-Este enfoque permite que el modelo reconozca **cuántas instancias hay**, **a qué clase pertenece cada una**, y **dónde están ubicadas con precisión pixel a pixel**.
+Mask2Former aborda esta tarea mediante:
 """)
 
-st.markdown("### Ventajas clave:")
 st.markdown("""
-- **Alto rendimiento**: Supera a modelos especializados en COCO (50.1 AP en instancias) y otros benchmarks.
+#### 1. Predicción por categorías
+- Genera **una máscara por clase** (en lugar de una por objeto).
+- Ejemplo: 
+  - Todos los píxeles de "árbol" se agrupan en una sola máscara, aunque haya 10 árboles en la imagen.
+  - Difiere de la segmentación de instancias, donde cada árbol tendría su propia máscara.
 
-- **Entrenamiento eficiente**: Reduce el consumo de memoria y tiempo de entrenamiento (*3× menos memoria* que modelos anteriores).
+#### 2. Queries aprendibles por clase
+- Cada *query* se especializa en predecir una categoría específica (ej: Query 1 = "cielo", Query 2 = "carretera").
+- Estas queries son entrenadas para activarse en regiones donde aparece su categoría asignada.
 
-- **Universalidad**: Un solo modelo para múltiples tareas, simplificando despliegue y mantenimiento.
+#### 3. Atención enmascarada global
+- Aunque usa el mismo mecanismo de atención enmascarada que para instancias, aquí se enfoca en **todas las regiones de una categoría**.
+- Ejemplo: Para la clase "árbol", la atención cubrirá todos los píxeles de árboles en la imagen.
+""")
+
+st.markdown("### Ventajas para segmentación semántica")
+st.markdown("""
+- **Alto rendimiento**: Logra **57.7 mIoU** en ADE20K.
+- **Eficiencia**: Usa el mismo modelo para todas las tareas, reduciendo complejidad.
+- **Calidad en bordes**: La atención enmascarada preserva detalles finos entre categorías (ej: bordes entre "calle" y "acera").
 """)
